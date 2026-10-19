@@ -89,7 +89,7 @@ def tail_hist(panels: list[tuple[str, np.ndarray, np.ndarray]], K: int, path: Pa
         ax.plot([], [], "--", color=INK2, linewidth=1.2, label="VaR95")
         ax.plot([], [], ":", color=INK2, linewidth=1.2, label="VaR99")
         ax.set(xlabel=f"Total ICU bed-days over 28 days, cohort of K={K}", ylabel="Density", title=title)
-    axes[0][0].legend()
+    axes[0][0].legend(loc="upper left")
     fig.tight_layout()
     return _save(fig, path)
 
