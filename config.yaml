@@ -27,3 +27,12 @@ covariates:
 
 era:
   late_from_year: 2015      # hospitaldischargeyear >= this -> late
+
+synthetic:
+  n_subjects: 2000          # ~4,000 admissions, similar size to the eICU demo cohort
+  era_shift: 0.0
+  second_order: false
+
+analysis:
+  horizon: 28               # H for occupancy / ICU days
+  results: results
