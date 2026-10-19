@@ -88,6 +88,11 @@ support pattern must match at least one row, and match counts are logged.
 - "Within 3 SE" for the unbiasedness check uses the SE of the mean over the `R` replications
   (`sd / sqrt(R)`), the stricter reading.
 - CV `beta` comes from an independent pilot run; for antithetic+CV it is fit on pair averages.
+- VRFs carry 95% intervals from resampling the `R` replications jointly with plain MC (the CV
+  estimator reuses plain's paths, so an F-interval assuming independence would be wrong). At
+  `R = 500` a VRF is only known to about ±15%: an early full run reported 1.30x for
+  severity-ordered antithetic on `Y1`, six reseeded runs gave 0.98-1.23x. Only the CV gain
+  (~2.5x) and the CRN gains (2.5-3.7x) are clearly real on the eICU chain.
 - CRN contrast (sepsis vs no sepsis) uses stratum matrices shrunk toward the pooled `P` and
   each stratum's own `pi0`, with the severity column order so shared uniforms couple outcomes.
 
