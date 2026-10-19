@@ -1,0 +1,26 @@
+[project]
+name = "mtraj"
+version = "0.1.0"
+description = "Absorbing Markov chain models of ICU patient trajectories (eICU-CRD demo)"
+readme = "README.md"
+authors = [
+    { name = "airjan-airlines", email = "arjundesikan2008@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "pandas>=3.0.6",
+    "pyarrow>=26.0.0",
+    "pyyaml>=6.0.3",
+    "scipy>=1.18.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
