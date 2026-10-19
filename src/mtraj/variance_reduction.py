@@ -19,6 +19,7 @@ from .simulate import simulate
 
 TARGETS = ["y1", "y2", "mort"]
 CHUNK = 1_000_000  # paths simulated per batch
+VRF_BOOT = 1000    # bootstrap reps over replications for VRF intervals
 
 
 def outcomes(paths: np.ndarray, horizon: int, icu_thr: int, los_thr: int) -> dict[str, np.ndarray]:
@@ -98,9 +99,14 @@ def run_estimators(P, pi0, vc: dict, horizon: int, rng: np.random.Generator) -> 
                 "antithetic_cv": anti[t] - beta_anti[t] * (anti["icu_days"] - exact["icu_days"]),
             }
             var_plain = est["plain"].var(ddof=1)
+            # VRF CI: resample replications jointly (CV shares plain's streams)
+            boot = rng.integers(0, R, (VRF_BOOT, R))
+            var_plain_b = est["plain"][boot].var(1, ddof=1)
             for method, x in est.items():
+                lo, hi = np.percentile(var_plain_b / x[boot].var(1, ddof=1), [2.5, 97.5])
                 rows.append({"target": t, "n": n, "method": method, "mean": x.mean(),
                              "se": x.std(ddof=1), "vrf": var_plain / x.var(ddof=1),
+                             "vrf_lo": lo, "vrf_hi": hi,
                              "exact": exact.get(t, np.nan),
                              "z_vs_exact": (x.mean() - exact[t]) / (x.std(ddof=1) / np.sqrt(R))
                              if t in exact else np.nan})

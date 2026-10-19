@@ -46,3 +46,9 @@ def test_crn_reduces_variance_of_contrast(vc):
     assert (df.vrf > 1.5).all(), df
     # both schemes estimate the same difference
     assert ((df.diff_crn - df.diff_indep).abs() < 3 * df.se_indep / np.sqrt(vc["R"])).all()
+
+
+def test_vrf_interval_brackets_point(table):
+    assert (table.vrf_lo <= table.vrf).all() and (table.vrf <= table.vrf_hi).all()
+    plain = table[table.method == "plain"]
+    np.testing.assert_allclose(plain[["vrf_lo", "vrf_hi"]].to_numpy(), 1.0)
