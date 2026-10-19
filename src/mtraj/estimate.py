@@ -72,3 +72,14 @@ def shrink2(C2: np.ndarray, alpha: float, P1: np.ndarray) -> np.ndarray:
 def initial_distribution(trajectories: pd.DataFrame) -> np.ndarray:
     first = trajectories.seq.str[0].to_numpy(dtype=int)
     return np.bincount(first, minlength=S) / len(first)
+
+
+def fit_strata(trans: pd.DataFrame, P_pooled: np.ndarray, alpha: float,
+               by=(("age_band",), ("sepsis",), ("age_band", "sepsis"))) -> dict[str, np.ndarray]:
+    """Per-stratum matrices shrunk toward the pooled P (joint and marginal strata)."""
+    out = {}
+    for cols in by:
+        for key, g in trans.groupby(list(cols)):
+            name = ", ".join(f"{c}={v}" for c, v in zip(cols, key))
+            out[name] = shrink(counts(g), alpha, P_pooled)
+    return out

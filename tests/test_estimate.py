@@ -76,3 +76,14 @@ def test_pooled_target_batched(first_order):
     m = E.pooled_target(batch)
     np.testing.assert_allclose(m[0], E.pooled_target(C))
     np.testing.assert_allclose(m[1], E.pooled_target(2 * C + 1))
+
+
+def test_fit_strata_shrinks_toward_pooled(first_order):
+    _, t = first_order
+    t = t.assign(sepsis=np.arange(len(t)) % 2)
+    P = E.mle(E.counts(t))
+    fits = E.fit_strata(t, P, alpha=1e9)
+    assert {"sepsis=0", "sepsis=1", "age_band=<65", "age_band=<65, sepsis=1"} <= set(fits)
+    for Ps in fits.values():
+        _check_stochastic(Ps)
+        np.testing.assert_allclose(Ps, P, atol=1e-6)
