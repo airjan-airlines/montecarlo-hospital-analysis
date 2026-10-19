@@ -36,3 +36,23 @@ synthetic:
 analysis:
   horizon: 28               # H for occupancy / ICU days
   results: results
+
+estimation:
+  alpha: 1.0                # shrinkage strength; replaced by the CV-selected value in step 4
+
+uncertainty:
+  B: 1000                   # bootstrap / posterior draws
+
+variance_reduction:
+  R: 500                    # independent replications per estimator
+  n_grid: [1000, 10000, 100000]
+  n_pilot: 10000            # independent pilot run for control-variate beta
+  icu_days_threshold: 7     # Y1 = P(ICU days within H > 7)
+  los_threshold: 14         # Y2 = P(LOS > 14)
+  # inverse-CDF layout for antithetic/CRN: discharged < ward < icu < support < dead
+  severity_order: [3, 0, 1, 2, 4]
+  crn_n: 10000
+
+tail:
+  K: 50                     # cohort size
+  n_cohorts: 20000
