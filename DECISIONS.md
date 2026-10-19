@@ -96,3 +96,45 @@ support pattern must match at least one row, and match counts are logged.
 - With ~14k transitions, parameter uncertainty barely moves cohort tail risk (VaR99 ratio ~1.01).
   To show the spec's point honestly, `tail_ratio_vs_sample_size` refits on random subsets of
   subjects: the VaR99 understatement grows as data shrink (~14% at 50 subjects).
+
+## Shrinkage and stratified fits (spec 4.3, 4.4)
+
+- `alpha` grid: 25 log-spaced values in `[1e-2, 1e4]` pseudo-counts per row.
+- Three `alpha`s are chosen by subject-level 5-fold CV log-loss, in order: `shrink1` (rows toward
+  the pooled next-state frequencies), then `shrink2` (second-order rows toward the first-order
+  row of the current state) and `strat` (stratum rows toward the pooled shrunk `P`), both given
+  `shrink1`'s `alpha`. The `shrink1` `alpha` is used for all downstream analysis.
+- Strata: `age_band × sepsis` jointly and each marginally, all with the `strat` `alpha`.
+
+## Validation (spec 7.1-7.3)
+
+- **Subject-level era:** a subject's era (and region) is the one of their first admission. 52 of
+  1,758 eICU subjects have admissions in both years; labelling at subject level keeps the
+  walk-forward split subject-disjoint and makes the permutation unit the subject.
+- `alpha`s are re-selected by inner CV on every training set (nested), so test data never
+  touch hyper-parameters. The K-fold metric pools out-of-fold losses across folds.
+- `persistence`: `epsilon` = fraction of training transitions that change state (its MLE).
+- `mle2` rows for unseen `(prev, cur)` pairs fall back to the first-order MLE row.
+- Alongside each model's SE, the table reports the **paired** log-loss difference vs `mle1` with
+  its own subject-bootstrap SE: model differences (~0.01-0.02) are far smaller than the
+  between-subject spread, so unpaired SEs overstate the uncertainty of a comparison.
+- Figure 5 uses dots with error bars, not bars: a zero-based bar hides 0.01 differences on a
+  0.9 scale.
+- Calibration predicts from the test set's own day-0 distribution with the model fit on the
+  training era, so it checks transition dynamics rather than case mix.
+
+## Stability and order tests (spec 7.4, 7.5)
+
+- G-test df = `(groups - 1) · Σ_i (d_i - 1)`, with `d_i` the destinations observed from
+  transient row `i` in the pooled data (structurally empty cells removed).
+- Stability is tested across eras (spec) and across US census regions (eICU-specific; 186
+  hospitals are too many sparse groups, regions are not). Stays with missing region are left
+  out of the region test.
+- The chi-square p-value treats transitions as independent; the subject-permutation p-value
+  does not. Where they disagree, the permutation p-value is the one to trust.
+- Order test df counts free parameters as observed destinations minus one per observed row;
+  the parametric bootstrap p-value does not depend on this approximation.
+- The order test is validated on **homogeneous** synthetic data. Unobserved heterogeneity (a mix
+  of patient types, each first-order) makes the pooled chain look higher-order, so a
+  rejection on real data means "pooled first-order is wrong", not necessarily "patients have
+  memory".
