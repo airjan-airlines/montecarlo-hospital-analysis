@@ -37,9 +37,6 @@ analysis:
   horizon: 28               # H for occupancy / ICU days
   results: results
 
-estimation:
-  alpha: 1.0                # shrinkage strength; replaced by the CV-selected value in step 4
-
 uncertainty:
   B: 1000                   # bootstrap / posterior draws
 
