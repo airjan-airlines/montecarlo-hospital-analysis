@@ -109,7 +109,8 @@ P(ICU days > 7) and {{crn_vrf.mort:.1f}}× for 28-day mortality.
 
 **8. Tail risk.** For a cohort of 50 admissions, plug-in VaR99 of ICU bed-days over 28 days is
 {{tail.plug_in.VaR99:.0f}} vs {{tail.posterior_predictive.VaR99:.0f}} posterior-predictive: on the full
-sample, patient-level randomness swamps parameter uncertainty. Refitting on 50 / 100 / 250 / 500 patients it grows to
+sample, patient-level randomness swamps parameter uncertainty (left panel). Fitting on 50 random
+patients (right panel) the posterior-predictive tail is visibly heavier. Refitting on 50 / 100 / 250 / 500 patients it grows to
 {{tail_VaR99_ratio_vs_n.500:.3f}} / {{tail_VaR99_ratio_vs_n.250:.3f}} / {{tail_VaR99_ratio_vs_n.100:.3f}} /
 {{tail_VaR99_ratio_vs_n.50:.3f}}× (posterior / plug-in), so the cost of ignoring parameter uncertainty is a
 small-sample problem.
