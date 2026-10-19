@@ -58,6 +58,13 @@ def test_transitions_prev_state():
     assert t.prev_state.tolist() == [-1, WARD, ICU]
 
 
+def test_transitions_accepts_array_seqs():
+    # parquet returns seq as numpy arrays, where + would add elementwise
+    traj = pd.DataFrame({"subject_id": ["a"], "hadm_id": [1], "era": ["early"], "age_band": ["<65"],
+                         "sepsis": [0], "seq": [np.array([WARD, ICU, DEAD])]})
+    assert transitions(traj).prev_state.tolist() == [-1, WARD]
+
+
 def _toy_raw():
     # Hospital stay 10: admitted 6h before ICU; two unit stays; vasopressor in first.
     patient = pd.DataFrame({

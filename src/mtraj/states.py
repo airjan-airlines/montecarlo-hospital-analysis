@@ -157,6 +157,7 @@ def build_trajectories(raw: dict[str, pd.DataFrame], cfg: dict) -> pd.DataFrame:
 def transitions(traj: pd.DataFrame, covariates=("era", "age_band", "sepsis")) -> pd.DataFrame:
     """Long table of observed transitions with previous state (-1 on day 0)."""
     t = traj[["subject_id", "hadm_id", *covariates, "seq"]].copy()
+    t["seq"] = t.seq.apply(list)  # parquet round-trips lists as numpy arrays
     t = t[t.seq.str.len() >= 2]
     t["from_state"] = t.seq.str[:-1]
     t["to_state"] = t.seq.str[1:]
