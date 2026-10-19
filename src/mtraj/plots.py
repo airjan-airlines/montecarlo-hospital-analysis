@@ -74,20 +74,22 @@ def se_vs_n(table: pd.DataFrame, path: Path) -> Path:
     return _save(fig, path)
 
 
-def tail_hist(plug: np.ndarray, post: np.ndarray, rm: pd.DataFrame, K: int, path: Path) -> Path:
-    """Fig 8: cohort ICU bed-days, plug-in vs posterior-predictive, VaR95/99 marked."""
-    fig, ax = plt.subplots(figsize=(8, 4))
-    bins = np.arange(min(plug.min(), post.min()), max(plug.max(), post.max()) + 5, 4) - 0.5
-    for x, name, c in ((plug, "plug_in", SERIES[0]), (post, "posterior_predictive", SERIES[1])):
-        ax.hist(x, bins=bins, density=True, histtype="step", color=c, linewidth=1.5,
-                label=name.replace("_", "-"))
-        for q, ls in (("VaR95", "--"), ("VaR99", ":")):
-            ax.axvline(rm.loc[q, name], color=c, linestyle=ls, linewidth=1.2)
-    ax.plot([], [], "--", color=INK2, linewidth=1.2, label="VaR95")
-    ax.plot([], [], ":", color=INK2, linewidth=1.2, label="VaR99")
-    ax.set(xlabel=f"Total ICU bed-days over 28 days, cohort of K={K}", ylabel="Density",
-           title="Cohort ICU bed-day tail risk")
-    ax.legend()
+def tail_hist(panels: list[tuple[str, np.ndarray, np.ndarray]], K: int, path: Path) -> Path:
+    """Fig 8: cohort ICU bed-days, plug-in vs posterior-predictive, VaR95/99 marked.
+
+    One panel per (title, plug_in draws, posterior-predictive draws).
+    """
+    fig, axes = plt.subplots(1, len(panels), figsize=(6.5 * len(panels), 4), squeeze=False)
+    for ax, (title, plug, post) in zip(axes[0], panels):
+        bins = np.arange(min(plug.min(), post.min()), max(plug.max(), post.max()) + 5, 4) - 0.5
+        for x, name, c in ((plug, "plug-in", SERIES[0]), (post, "posterior-predictive", SERIES[1])):
+            ax.hist(x, bins=bins, density=True, histtype="step", color=c, linewidth=1.5, label=name)
+            for q, ls in ((0.95, "--"), (0.99, ":")):
+                ax.axvline(np.quantile(x, q), color=c, linestyle=ls, linewidth=1.2)
+        ax.plot([], [], "--", color=INK2, linewidth=1.2, label="VaR95")
+        ax.plot([], [], ":", color=INK2, linewidth=1.2, label="VaR99")
+        ax.set(xlabel=f"Total ICU bed-days over 28 days, cohort of K={K}", ylabel="Density", title=title)
+    axes[0][0].legend()
     fig.tight_layout()
     return _save(fig, path)
 
