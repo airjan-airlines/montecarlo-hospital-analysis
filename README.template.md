@@ -11,11 +11,13 @@ subject-level uncertainty, honest out-of-sample validation, and Monte Carlo with
 (subject-bootstrap 95% CI {{mortality_ci_bootstrap.0*100:.1f}}–{{mortality_ci_bootstrap.1*100:.1f}}%;
 observed {{observed_mortality*100:.1f}}%). Out of sample, the best model (`{{best_model.walk_forward}}`)
 cuts log-loss by **{{logloss_gain_vs_persistence.walk_forward*100:.1f}}%** vs a persistence baseline
-when trained on 2014 and tested on 2015. A control variate cuts Monte Carlo variance for
-P(ICU days > 7) by **{{vrf.y1/control_variate:.1f}}×**, and **{{vrf.y1/antithetic_cv:.1f}}×** combined with
-severity-ordered antithetic variates. Ignoring parameter uncertainty understates cohort ICU-bed VaR99 by
-**{{tail_VaR99_excess_vs_n.50*100:.0f}}%** when fitting on 50 patients, but only
-{{tail_VaR99_excess_full*100:.1f}}% on the full sample.
+when trained on 2014 and tested on 2015. A control variate (ICU days, whose mean is known in
+closed form) cuts Monte Carlo variance for P(ICU days > 7) by **{{vrf.y1/control_variate:.1f}}×**
+(95% CI {{vrf_ci.y1/control_variate.0:.1f}}–{{vrf_ci.y1/control_variate.1:.1f}}), and common random numbers
+cut the variance of sepsis-vs-no-sepsis contrasts by **{{crn_vrf.y1:.1f}}–{{crn_vrf.icu_days:.1f}}×**.
+Ignoring parameter uncertainty understates cohort ICU-bed VaR99 by
+**{{tail_VaR99_excess_vs_n.50*100:.0f}}%** when fitting on 50 patients, but makes no material difference
+on the full sample.
 
 ## Method
 
@@ -92,18 +94,22 @@ peak of short stays, the same misfit the order test detects.
 
 ![SE vs n](results/figures/fig7_se_vs_n.png)
 
-**7. Variance reduction.** All estimators follow the n^(−1/2) slope; at n = 10⁵ the variance reduction
-factors for P(ICU days > 7) are {{vrf.y1/antithetic_naive:.2f}}× (naive antithetic),
-{{vrf.y1/antithetic:.2f}}× (severity-ordered antithetic), {{vrf.y1/control_variate:.2f}}× (control
-variate), and {{vrf.y1/antithetic_cv:.2f}}× (both). Every estimator's mean is within 3 SE of the exact
-value wherever one exists. Common random numbers cut the variance of the sepsis-vs-no-sepsis difference
-by {{crn_vrf.y1:.1f}}× for P(ICU days > 7) and {{crn_vrf.mort:.1f}}× for 28-day mortality.
+**7. Variance reduction.** All estimators follow the n^(−1/2) slope. At n = 10⁵ (500 replications;
+95% bootstrap CIs) the variance reduction factors for P(ICU days > 7) are
+{{vrf.y1/antithetic_naive:.2f}}× ({{vrf_ci.y1/antithetic_naive.0:.2f}}–{{vrf_ci.y1/antithetic_naive.1:.2f}}) naive antithetic,
+{{vrf.y1/antithetic:.2f}}× ({{vrf_ci.y1/antithetic.0:.2f}}–{{vrf_ci.y1/antithetic.1:.2f}}) severity-ordered antithetic,
+{{vrf.y1/control_variate:.2f}}× ({{vrf_ci.y1/control_variate.0:.2f}}–{{vrf_ci.y1/control_variate.1:.2f}}) control variate and
+{{vrf.y1/antithetic_cv:.2f}}× ({{vrf_ci.y1/antithetic_cv.0:.2f}}–{{vrf_ci.y1/antithetic_cv.1:.2f}}) both. The control variate does
+the work; antithetic pairing adds little on this chain. For targets with an exact value (P(LOS > 14),
+28-day mortality) every estimator's mean is within 3 SE of it (largest |z| = {{vr_max_abs_z:.2f}}).
+Common random numbers cut the variance of the sepsis-vs-no-sepsis difference by {{crn_vrf.y1:.1f}}× for
+P(ICU days > 7) and {{crn_vrf.mort:.1f}}× for 28-day mortality.
 
 ![Tail risk](results/figures/fig8_tail_risk.png)
 
 **8. Tail risk.** For a cohort of 50 admissions, plug-in VaR99 of ICU bed-days over 28 days is
-{{tail.plug_in.VaR99:.0f}} vs {{tail.posterior_predictive.VaR99:.0f}} posterior-predictive. On the full
-sample the gap is small; refitting on 50 / 100 / 250 / 500 patients it grows to
+{{tail.plug_in.VaR99:.0f}} vs {{tail.posterior_predictive.VaR99:.0f}} posterior-predictive: on the full
+sample, patient-level randomness swamps parameter uncertainty. Refitting on 50 / 100 / 250 / 500 patients it grows to
 {{tail_VaR99_ratio_vs_n.500:.3f}} / {{tail_VaR99_ratio_vs_n.250:.3f}} / {{tail_VaR99_ratio_vs_n.100:.3f}} /
 {{tail_VaR99_ratio_vs_n.50:.3f}}× (posterior / plug-in), so the cost of ignoring parameter uncertainty is a
 small-sample problem.
@@ -122,10 +128,12 @@ the Dirichlet ones because days from the same patient are correlated.
   dependence. Second-order helps out of sample, but part of the apparent memory is probably
   unobserved heterogeneity between patients (a mixture of first-order chains looks higher-order).
   A semi-Markov or covariate-rich model is the natural next step.
-- **Naive antithetic variates barely help** ({{vrf.y1/antithetic_naive:.2f}}×): with states laid out in index
-  order on [0, 1), a high uniform means both discharge and death, so outcomes are not monotone in
-  the uniforms. Reordering the inverse CDF by severity fixes most of this; no order makes LOS
-  monotone, since both absorbing states end the stay.
+- **Antithetic variates barely help** ({{vrf.y1/antithetic_naive:.2f}}× naive, {{vrf.y1/antithetic:.2f}}×
+  severity-ordered). With states laid out in index order on [0, 1), a high uniform means both
+  discharge and death, so outcomes are not monotone in the uniforms; ordering the inverse CDF by
+  severity restores negative pair correlation for one step, but over 28 steps of a strongly
+  persistent chain the coupling washes out. No order makes LOS monotone, since both absorbing
+  states end the stay.
 - **P(LOS > 14) is not simulation-only**, as the spec assumed: it equals the transient mass of
   `π₁₄`. It serves as a second unbiasedness check.
 - **ICU patients only.** eICU records start from an ICU admission, so ward-only stays are missing and
