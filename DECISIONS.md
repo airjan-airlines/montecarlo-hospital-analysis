@@ -62,3 +62,37 @@ support pattern must match at least one row, and match counts are logged.
 ## Storage
 
 - Parquet via `pyarrow` (one dependency beyond the spec's list) for `data/processed/`.
+
+## Uncertainty (spec 6.2)
+
+- Shrinkage `alpha` is a fixed config value (1.0) until the CV selection in step 4 replaces it.
+- Dirichlet posterior also draws `pi0 ~ Dirichlet(day-0 counts)` so cohort quantities include
+  initial-state uncertainty, matching the bootstrap, which resamples day-0 states with subjects.
+- The bootstrap gives intervals up to ~1.35x wider than the Dirichlet posterior, most for LOS. The
+  Dirichlet treats transitions as independent; days from the same patient are not. The
+  subject-level bootstrap is the more honest interval and is the one quoted in headlines.
+- Occupancy bands in Figure 3 use the Dirichlet posterior, as the spec asks.
+
+## Variance reduction (spec 6.3, 6.4)
+
+- `Y2 = P(LOS > 14)` is **not** simulation-only: it equals the transient mass of `pi_14`, so it is
+  closed-form. It is kept as a second unbiasedness check alongside 28-day mortality. `Y1` is
+  the only target with no Section 5 closed form.
+- Antithetic variates with the natural state order (WARD, ICU, SUPPORT, DISCHARGED, DEAD) can
+  *increase* variance: high `u` maps to both discharge and death, so outcomes are not monotone in
+  `u`. The simulator's `column_order` lays states out in severity order
+  (DISCHARGED < WARD < ICU < SUPPORT < DEAD) on `[0, 1)` without changing the law. Both variants
+  are reported (`antithetic_naive`, `antithetic`). No single order makes LOS monotone, since
+  both absorbing states end the stay.
+- Antithetic estimators use `n` total paths (`n/2` pairs) so cost matches plain MC.
+- "Within 3 SE" for the unbiasedness check uses the SE of the mean over the `R` replications
+  (`sd / sqrt(R)`), the stricter reading.
+- CV `beta` comes from an independent pilot run; for antithetic+CV it is fit on pair averages.
+- CRN contrast (sepsis vs no sepsis) uses stratum matrices shrunk toward the pooled `P` and
+  each stratum's own `pi0`, with the severity column order so shared uniforms couple outcomes.
+
+## Tail risk (spec 6.5)
+
+- With ~14k transitions, parameter uncertainty barely moves cohort tail risk (VaR99 ratio ~1.01).
+  To show the spec's point honestly, `tail_ratio_vs_sample_size` refits on random subsets of
+  subjects: the VaR99 understatement grows as data shrink (~14% at 50 subjects).
