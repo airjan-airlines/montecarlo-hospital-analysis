@@ -77,9 +77,9 @@ second-order and stratified rows are sparse and the CV optimum is interior.
 ![Model comparison](results/figures/fig5_model_comparison.png)
 
 **5. Model comparison.** Every Markov model beats persistence and the marginal baseline by a
-wide margin; second-order with shrinkage is best, ahead of first-order MLE by
-{{best_vs_mle1.walk_forward.0:.4f}} ± {{best_vs_mle1.walk_forward.1:.4f}} log-loss
-(paired, walk-forward) and {{best_vs_mle1.kfold.0:.4f}} ± {{best_vs_mle1.kfold.1:.4f}} (5-fold).
+wide margin; second-order with shrinkage is best. Its paired log-loss difference from first-order
+MLE is {{best_vs_mle1.walk_forward.0:.4f}} ± {{best_vs_mle1.walk_forward.1:.4f}} walk-forward and
+{{best_vs_mle1.kfold.0:.4f}} ± {{best_vs_mle1.kfold.1:.4f}} 5-fold (negative is better; ±1 subject-bootstrap SE).
 
 {{table:model_comparison}}
 
