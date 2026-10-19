@@ -39,9 +39,12 @@ def mle(C: np.ndarray) -> np.ndarray:
 
 
 def pooled_target(C: np.ndarray) -> np.ndarray:
-    """Overall next-state frequencies among transient-origin transitions, as every row."""
-    f = C[TRANSIENT].sum(0)
-    return np.broadcast_to(f / f.sum(), (S, S)).copy()
+    """Overall next-state frequencies among transient-origin transitions, as every row.
+
+    Accepts a batch of count matrices (..., S, S).
+    """
+    f = C[..., TRANSIENT, :].sum(-2)
+    return np.broadcast_to((f / f.sum(-1, keepdims=True))[..., None, :], C.shape).copy()
 
 
 def shrink(C: np.ndarray, alpha: float, m: np.ndarray) -> np.ndarray:

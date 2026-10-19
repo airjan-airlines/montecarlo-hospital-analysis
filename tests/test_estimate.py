@@ -67,3 +67,12 @@ def test_mle2_recovers_relapse_row():
     assert np.abs(P2[ICU_SUPPORT + 1, ICU] - truth[ICU_SUPPORT, ICU]).max() < 0.02
     assert np.abs(P2[ICU + 1, ICU] - P_TRUE[ICU]).max() < 0.02
     _check_stochastic(E.shrink2(E.counts2(t), 5.0, P1))
+
+
+def test_pooled_target_batched(first_order):
+    _, t = first_order
+    C = E.counts(t)
+    batch = np.stack([C, 2 * C + 1])
+    m = E.pooled_target(batch)
+    np.testing.assert_allclose(m[0], E.pooled_target(C))
+    np.testing.assert_allclose(m[1], E.pooled_target(2 * C + 1))
