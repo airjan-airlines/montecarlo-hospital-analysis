@@ -65,10 +65,11 @@ def generate(n_subjects: int, rng: np.random.Generator, max_days: int = 60,
     n_adm = rng.integers(1, 4, n_subjects)
     subj = np.repeat(np.arange(n_subjects), n_adm)
     old = rng.random(n_subjects) < p_old
+    late = rng.random(n_subjects) < 0.5
     df = pd.DataFrame({
         "subject_id": [f"s{i}" for i in subj],
         "hadm_id": np.arange(len(subj)),
-        "era": np.where(rng.random(len(subj)) < 0.5, "early", "late"),
+        "era": np.where(late[subj], "late", "early"),  # per subject, as in eICU
         "age_band": np.where(old[subj], ">=65", "<65"),
         "sepsis": (rng.random(len(subj)) < p_sepsis).astype(int),
     })
