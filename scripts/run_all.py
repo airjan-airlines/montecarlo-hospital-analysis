@@ -220,6 +220,9 @@ def main() -> None:
                       for k, r in stab.items()},
         "order_test": {k: float(order[k]) for k in ("LR", "df", "p_chi2", "p_boot", "aic1", "aic2", "bic1", "bic2")},
         "vrf": {f"{t}/{m}": float(x) for (t, m), x in big.items()},
+        "vrf_ci": {f"{t}/{m}": [float(lo), float(hi)] for (t, m), lo, hi in
+                   zip(big.index, vr[vr.n == max(vc["n_grid"])].vrf_lo, vr[vr.n == max(vc["n_grid"])].vrf_hi)},
+        "vr_max_abs_z": float(vr.z_vs_exact.abs().max()),
         "crn_vrf": dict(zip(crn.target, crn.vrf.astype(float))),
         "crn_diff": dict(zip(crn.target, crn.diff_crn.astype(float))),
         "tail": {k: risk[k].to_dict() for k in risk.columns},
