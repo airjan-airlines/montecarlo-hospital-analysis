@@ -1,7 +1,7 @@
 import numpy as np
 
 from mtraj import DISCHARGED
-from mtraj.simulate import simulate
+from mtraj.simulate import simulate, simulate_mixture
 from mtraj.synthetic import P_TRUE, PI0
 
 
@@ -40,3 +40,23 @@ def test_absorbing_states_stay_absorbed():
     x = simulate(P_TRUE, PI0, 5000, 40, np.random.default_rng(4))
     absorbed = x[:, :-1] >= DISCHARGED
     assert (x[:, 1:][absorbed] == x[:, :-1][absorbed]).all()
+
+
+SEVERITY = [DISCHARGED, 0, 1, 2, 4]
+
+
+def test_column_order_preserves_law():
+    from mtraj.analytic import occupancy
+    x = simulate(P_TRUE, PI0, 100_000, 10, np.random.default_rng(5), column_order=SEVERITY)
+    emp = np.stack([np.bincount(x[:, t], minlength=5) for t in range(11)]) / len(x)
+    assert np.abs(emp - occupancy(P_TRUE, PI0, 10)).max() < 0.01
+
+
+def test_mixture_uses_each_paths_matrix():
+    stay = np.eye(5)
+    leave = np.zeros((5, 5))
+    leave[:, DISCHARGED] = 1
+    pi0 = np.tile(np.eye(5)[0], (2, 1))
+    draw = np.array([0, 1, 0, 1])
+    x = simulate_mixture(np.stack([stay, leave]), pi0, draw, 3, np.random.default_rng(0))
+    assert (x[draw == 0] == 0).all() and (x[draw == 1, 1:] == DISCHARGED).all()
