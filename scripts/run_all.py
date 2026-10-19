@@ -224,6 +224,9 @@ def main() -> None:
         "crn_diff": dict(zip(crn.target, crn.diff_crn.astype(float))),
         "tail": {k: risk[k].to_dict() for k in risk.columns},
         "tail_VaR99_ratio_vs_n": dict(zip(sweep.n_subjects.astype(str), sweep.VaR99_ratio)),
+        "tail_VaR99_excess_vs_n": dict(zip(sweep.n_subjects.astype(str), sweep.VaR99_ratio - 1)),
+        "tail_VaR99_excess_full": float(risk.loc["VaR99", "ratio"] - 1),
+        "P_strata": {k: Ps.tolist() for k, Ps in strata.items()},
     }
     out.mkdir(parents=True, exist_ok=True)
     (out / "metrics.json").write_text(json.dumps(metrics, indent=2, default=float))
