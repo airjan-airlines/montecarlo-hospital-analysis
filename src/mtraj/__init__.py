@@ -1,0 +1,6 @@
+"""Markov models of ICU patient trajectories (eICU-CRD demo)."""
+
+STATES = ["WARD", "ICU", "ICU_SUPPORT", "DISCHARGED", "DEAD"]
+WARD, ICU, ICU_SUPPORT, DISCHARGED, DEAD = range(5)
+TRANSIENT = [WARD, ICU, ICU_SUPPORT]
+ABSORBING = [DISCHARGED, DEAD]
