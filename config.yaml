@@ -56,3 +56,13 @@ variance_reduction:
 tail:
   K: 50                     # cohort size
   n_cohorts: 20000
+
+validation:
+  k_folds: 5
+  alpha_grid: {log10_min: -2, log10_max: 4, n: 25}
+  prob_floor: 1.0e-12
+  n_boot_se: 500            # subject bootstrap reps for test-metric SEs
+
+stat_tests:
+  n_permutations: 2000      # stability test
+  n_param_boot: 500         # Markov order test
