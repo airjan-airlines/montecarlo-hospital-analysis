@@ -187,7 +187,13 @@ def main() -> None:
     sweep = TL.ratio_vs_sample_size(Cs, D0s, [50, 100, 250, 500, len(Cs)], alpha, tc["K"],
                                     tc["n_cohorts"], H, rng_tail)
     write_table(sweep, tabs / "tail_ratio_vs_sample_size")
-    plots.tail_hist(plug, pp, risk, tc["K"], figs / "fig8_tail_risk.png")
+    small = rng_tail.choice(len(Cs), size=min(50, len(Cs)), replace=False)
+    C50, d50 = Cs[small].sum(0), D0s[small].sum(0)
+    plug50 = TL.plug_in(U.fit(C50, alpha), d50 / d50.sum(), tc["K"], tc["n_cohorts"], H, rng_tail)
+    pp50 = TL.posterior_predictive(C50, d50, alpha, tc["K"], tc["n_cohorts"], H, rng_tail)
+    plots.tail_hist([(f"Fit on all {len(Cs)} patients", plug, pp),
+                     (f"Fit on {len(small)} random patients", plug50, pp50)],
+                    tc["K"], figs / "fig8_tail_risk.png")
     print("\nTail risk (cohort ICU bed-days)\n" + risk.round(3).to_string())
 
     # --- metrics -------------------------------------------------------------------------
