@@ -1,0 +1,29 @@
+data:
+  root: data/raw/eicu-crd-demo
+  processed: data/processed
+  use_synthetic: false
+
+seed: 20261019
+
+states:
+  max_days: 60            # truncate trajectories for estimation
+  icu_overlap_min: 60     # minutes of ICU overlap needed to label a day ICU
+  support_gap_fill_min: 1440  # merge support events closer than this into one interval
+  min_age: 18
+
+support:
+  # treatment.treatmentstring substrings (case-insensitive); NIV excluded in v1
+  treatment_include: ["mechanical ventilation", "ventilator weaning", "|vasopressors"]
+  treatment_exclude: ["non-invasive"]
+  # infusiondrug.drugname regex for vasopressors (dobutamine/milrinone are inotropes, excluded)
+  vasopressor_regex: "norepinephrine|epinephrine|phenylephrine|vasopressin|dopamine"
+  # respiratoryCharting labels that imply a set ventilator mode
+  vent_chart_labels: ["Vent Rate", "Tidal Volume (set)"]
+
+covariates:
+  age_cut: 65
+  sepsis_regex: "sepsis|septic"
+  sepsis_window_min: 1440   # sepsis counts only if documented within 24h of first ICU admit
+
+era:
+  late_from_year: 2015      # hospitaldischargeyear >= this -> late
